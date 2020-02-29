@@ -72,7 +72,9 @@ public class M4AFix {
         int size = processMdat(ch, mdat, moov);
         MP4Util.writeMovie(ch, moov);
         ch.setPosition(mdat.getOffset());
-        ch.write(ByteBuffer.allocate(4).putInt(size + 8).flip());
+        final ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.putInt(size + 8).flip();
+        ch.write(bb);
     }
 
     private static int processMdat(SeekableByteChannel ch, Atom atom, MovieBox moov) throws IOException {
