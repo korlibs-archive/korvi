@@ -108,7 +108,7 @@ public class DPXReader {
 
         3.4 creation date/time:
         Defined as yyyy:mm:dd:hh:mm:ssLTZ, formatted according to ISO 8601.
-        “LTZ” means “Local Time Zone;” format is:
+        "LTZ" means "Local Time Zone;" format is:
         LTZ = Z (time zone = UTC), or
         LTZ = +/–hh, or
         LTZ = +/–hhmm (local time is offset from UTC)
