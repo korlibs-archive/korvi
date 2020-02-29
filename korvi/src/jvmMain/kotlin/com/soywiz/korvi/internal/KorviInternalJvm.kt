@@ -21,14 +21,14 @@ import java.nio.*
 internal actual val korviInternal: KorviInternal = JvmKorviInternal()
 
 internal class JvmKorviInternal : KorviInternal() {
-    override fun createContainer(stream: AsyncStream): KorviContainer {
-        return JvmKorviContainer(MP4Demuxer.createMP4Demuxer(stream.seekableByteChannel()))
+    override fun createContainer(stream: AsyncStream): KorviVideo {
+        return JvmKorviVideo(MP4Demuxer.createMP4Demuxer(stream.seekableByteChannel()))
     }
 }
 
-class JvmKorviContainer(
+class JvmKorviVideo(
     val demuxer: Demuxer
-) : KorviContainer() {
+) : KorviVideo() {
     override val video = demuxer.videoTracks.map { JvmKorviVideoStream(this, it) }
     override val audio = demuxer.audioTracks.map { JvmKorviAudioStream(this, it) }
 }
@@ -58,7 +58,7 @@ internal class KorviQueue<TGen>() : Collection<TGen> {
 }
 
 abstract class JvmBaseKorviStream<TFrame : KorviFrame>(
-    val container: JvmKorviContainer,
+    val container: JvmKorviVideo,
     val track: DemuxerTrack
 ) : BaseKorviStream<TFrame> {
     internal val queue = KorviQueue<TFrame>()
@@ -83,7 +83,7 @@ abstract class JvmBaseKorviStream<TFrame : KorviFrame>(
 }
 
 class JvmKorviVideoStream(
-    container: JvmKorviContainer,
+    container: JvmKorviVideo,
     private val videoTrack: DemuxerTrack
 ) : JvmBaseKorviStream<KorviVideoFrame>(container, videoTrack) {
     private val adaptor = AVCMP4Adaptor(videoTrack.meta)
@@ -99,7 +99,7 @@ class JvmKorviVideoStream(
 }
 
 class JvmKorviAudioStream(
-    container: JvmKorviContainer,
+    container: JvmKorviVideo,
     private val audioTrack: DemuxerTrack
 ) : JvmBaseKorviStream<KorviAudioFrame>(container, audioTrack) {
     private val audioMeta = audioTrack.meta

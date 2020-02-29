@@ -7,9 +7,9 @@ import com.soywiz.korio.async.*
 import com.soywiz.korio.stream.*
 import com.soywiz.korvi.internal.*
 
-fun KorviContainer(stream: AsyncStream): KorviContainer = korviInternal.createContainer(stream)
+fun KorviVideo(stream: AsyncStream): KorviVideo = korviInternal.createContainer(stream)
 
-open class KorviContainer() : BaseKorviSeekable {
+open class KorviVideo() : BaseKorviSeekable {
     open val video: List<KorviVideoStream> = listOf()
     open val audio: List<KorviAudioStream> = listOf()
     val streams: List<BaseKorviStream<out KorviFrame>> by lazy { video + audio }

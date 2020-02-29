@@ -1,5 +1,5 @@
-//apply plugin: com.soywiz.korlibs.KorlibsPlugin
-apply plugin: com.soywiz.korlibs.KorlibsPluginNoNativeNoAndroid
+apply plugin: com.soywiz.korlibs.KorlibsPlugin
+//apply plugin: com.soywiz.korlibs.KorlibsPluginNoNativeNoAndroid
 
 kotlin {
     jvm {
