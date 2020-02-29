@@ -1,5 +1,7 @@
 package com.soywiz.korvi
 
-class Korvi {
+import com.soywiz.korvi.internal.*
 
+class Korvi {
+    private val internal = korviInternal
 }
