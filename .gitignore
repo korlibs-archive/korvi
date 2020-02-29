@@ -11,3 +11,9 @@
 *.iml
 *.hprof
 
+/korvi/.settings/
+/.settings/org.eclipse.buildship.core.prefs
+/.project
+/korvi/.classpath
+/korvi/.project
+/korvi/bin/

@@ -6,11 +6,21 @@ import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.vector.*
 
-class DummyKorviVideo(val totalFrames: Long, val timePerFrame: TimeSpan) : KorviVideo() {
+class DummyKorviVideo(
+    val totalFrames: Long,
+    val timePerFrame: TimeSpan,
+    val width: Int = 320,
+    val height: Int = 240
+) : KorviVideo() {
     companion object {
-        operator fun invoke(time: TimeSpan, fps: Number = 24) : KorviVideo {
+        operator fun invoke(
+            time: TimeSpan = 60.seconds,
+            fps: Number = 24,
+            width: Int = 320,
+            height: Int = 240
+        ) : KorviVideo {
             val timePerFrame = 1.seconds * (1 / fps.toDouble())
-            return DummyKorviVideo((time / timePerFrame).toLong(), timePerFrame)
+            return DummyKorviVideo((time / timePerFrame).toLong(), timePerFrame, width, height)
         }
     }
     override val video: List<KorviVideoStream> = listOf(DummyKorviVideoStream())
@@ -33,8 +43,6 @@ class DummyKorviVideo(val totalFrames: Long, val timePerFrame: TimeSpan) : Korvi
             if (currentFrame >= totalFrames) return null
             val frame = currentFrame++
             val currentTime = timePerFrame * frame.toDouble()
-            val width = 320
-            val height = 240
             val data = NativeImage(width, height)
             data.context2d {
                 fill(Colors.DARKGREEN) {
