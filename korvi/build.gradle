@@ -14,10 +14,8 @@ korlibs {
 // https://github.com/square/okio/issues/647
 // https://docs.gradle.org/current/userguide/component_metadata_rules.html
 configurations {
-    all {
-        if (name.contains("compileClasspath")) {
-            attributes.attribute(org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.attribute, org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm)
-        }
+    compileClasspath {
+        attributes.attribute(org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.attribute, org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm)
     }
 }
 
