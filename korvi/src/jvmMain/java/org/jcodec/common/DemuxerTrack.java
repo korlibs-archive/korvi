@@ -1,6 +1,7 @@
 package org.jcodec.common;
 
 import org.jcodec.common.model.Packet;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
  * 
  */
 public interface DemuxerTrack {
+    @Nullable
     Packet nextFrame() throws IOException;
     
     DemuxerTrackMeta getMeta();
