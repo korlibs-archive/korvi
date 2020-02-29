@@ -86,7 +86,8 @@ publishing {
     }
 }
 
-/*
+// @TODO: Migrate this or expose a separate plugin just for this
+
 publish.doLast {
     def subject = project.property("project.bintray.org")
     def repo = project.property("project.bintray.repository")
@@ -104,4 +105,3 @@ publish.doLast {
         System.out.println(inputStream.text)
     })
 }
-*/
