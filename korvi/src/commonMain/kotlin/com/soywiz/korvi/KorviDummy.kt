@@ -30,6 +30,7 @@ class DummyKorviVideo(val totalFrames: Long, val timePerFrame: TimeSpan) : Korvi
 
     inner class DummyKorviVideoStream : DummyBaseStream<KorviVideoFrame>() {
         override suspend fun readFrame(): KorviVideoFrame? {
+            if (currentFrame >= totalFrames) return null
             val frame = currentFrame++
             val currentTime = timePerFrame * frame.toDouble()
             val width = 320
@@ -55,6 +56,7 @@ class DummyKorviVideo(val totalFrames: Long, val timePerFrame: TimeSpan) : Korvi
 
     inner class DummyKorviAudioStream : DummyBaseStream<KorviAudioFrame>() {
         override suspend fun readFrame(): KorviAudioFrame? {
+            if (currentFrame >= totalFrames) return null
             val frame = currentFrame++
             val data = AudioData(44100, AudioSamples(2, (44100 * timePerFrame.seconds).toInt()))
             return KorviAudioFrame(data, frame, timePerFrame * frame.toDouble(), timePerFrame)
