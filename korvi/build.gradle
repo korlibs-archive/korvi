@@ -1,0 +1,12 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: com.soywiz.korlibs.KorlibsPlugin
+
+korlibs {
+    exposeVersion()
+}
+
+dependencies {
+	commonMainApi("com.soywiz.korlibs.korim:korim:$korimVersion")
+    commonMainApi("com.soywiz.korlibs.korau:korau:$korauVersion")
+}
