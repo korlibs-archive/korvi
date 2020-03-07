@@ -9,5 +9,6 @@ korlibs {
 dependencies {
     commonMainApi("com.soywiz.korlibs.korim:korim:$korimVersion")
     commonMainApi("com.soywiz.korlibs.korau:korau:$korauVersion")
-    jvmMainApi(project(":korvi-jcodec"))
+    jvmMainApi("org.jcodec:jcodec:0.2.5")
+    //jvmMainApi(project(":korvi-jcodec"))
 }
