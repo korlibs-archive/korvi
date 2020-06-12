@@ -18,6 +18,7 @@ import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLVideoElement
 import org.w3c.dom.events.Event
 import kotlin.browser.document
+import kotlin.browser.window
 import kotlin.coroutines.coroutineContext
 
 internal actual val korviInternal: KorviInternal = JsKorviInternal()
@@ -61,9 +62,9 @@ class KorviVideoJs(val url: String) : KorviVideo() {
     }
 
     override suspend fun play() {
+        removeListeners()
+        addListeners()
         video.play()
-        video.addEventListener("complete", videoComplete)
-        video.addEventListener("progress", videoFrame)
     }
 
     override suspend fun seek(frame: Long) {
@@ -74,13 +75,28 @@ class KorviVideoJs(val url: String) : KorviVideo() {
         video.fastSeek(time.secondsDouble)
     }
 
+    private fun addListeners() {
+        interval = window.setInterval({
+            videoFrame(null)
+        }, 16)
+
+        //video.addEventListener("progress", videoFrame)
+        video.addEventListener("ended", videoComplete)
+    }
+
+    private var interval = -1
+    private fun removeListeners() {
+        window.clearInterval(interval)
+        //video.removeEventListener("progress", videoFrame)
+        video.removeEventListener("ended", videoComplete)
+    }
+
     override suspend fun stop() {
-        video.removeEventListener("progress", videoFrame)
-        video.removeEventListener("complete", videoComplete)
+        removeListeners()
         video.pause()
     }
 
     override suspend fun close() {
-        super.close()
+        stop()
     }
 }

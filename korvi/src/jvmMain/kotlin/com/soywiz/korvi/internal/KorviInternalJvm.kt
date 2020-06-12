@@ -95,7 +95,7 @@ class JvmKorviVideoStream(
     override suspend fun prepareFrames() {
         if (queue.isNotEmpty()) return
         val frame = videoTrack.nextFrame() ?: return
-        println("FRAME: ${frame.frameNo}, ${frame.pts}, ${frame.timescale}, ${frame.duration}, ${frame.frameType}")
+        //println("FRAME: ${frame.frameNo}, ${frame.pts}, ${frame.timescale}, ${frame.duration}, ${frame.frameType}")
         val decodedFrame = adaptor.decodeFrame(frame, pic)
         queue.enqueue(KorviVideoFrame({ decodedFrame.toBmp() }, frame.frameNo, frame.ptsD.hrSeconds, frame.durationD.hrSeconds))
     }
