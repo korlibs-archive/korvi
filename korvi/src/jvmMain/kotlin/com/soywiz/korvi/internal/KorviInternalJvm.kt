@@ -2,6 +2,8 @@ package com.soywiz.korvi.internal
 
 import com.soywiz.kds.*
 import com.soywiz.klock.*
+import com.soywiz.klock.hr.HRTimeSpan
+import com.soywiz.klock.hr.hrSeconds
 import com.soywiz.kmem.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korim.bitmap.*
@@ -21,14 +23,14 @@ import java.nio.*
 internal actual val korviInternal: KorviInternal = JvmKorviInternal()
 
 internal class JvmKorviInternal : KorviInternal() {
-    override fun createContainer(stream: AsyncStream): KorviVideo {
-        return JvmKorviVideo(MP4Demuxer.createMP4Demuxer(stream.seekableByteChannel()))
+    override fun createContainer(stream: AsyncStream): KorviVideoLL {
+        return JvmKorviVideoLL(MP4Demuxer.createMP4Demuxer(stream.seekableByteChannel()))
     }
 }
 
-class JvmKorviVideo(
+class JvmKorviVideoLL(
     val demuxer: Demuxer
-) : KorviVideo() {
+) : KorviVideoLL() {
     override val video = demuxer.videoTracks.map { JvmKorviVideoStream(this, it) }
     override val audio = demuxer.audioTracks.map { JvmKorviAudioStream(this, it) }
 }
@@ -58,7 +60,7 @@ internal class KorviQueue<TGen>() : Collection<TGen> {
 }
 
 abstract class JvmBaseKorviStream<TFrame : KorviFrame>(
-    val container: JvmKorviVideo,
+    val container: JvmKorviVideoLL,
     val track: DemuxerTrack
 ) : BaseKorviStream<TFrame> {
     internal val queue = KorviQueue<TFrame>()
@@ -67,12 +69,12 @@ abstract class JvmBaseKorviStream<TFrame : KorviFrame>(
         (track as SeekableDemuxerTrack).gotoFrame(frame)
     }
 
-    override suspend fun seek(time: TimeSpan) {
-        (track as SeekableDemuxerTrack).seek(time.seconds)
+    override suspend fun seek(time: HRTimeSpan) {
+        (track as SeekableDemuxerTrack).seek(time.secondsDouble)
     }
 
     override suspend fun getTotalFrames(): Long? = track.meta.totalFrames.toLong()
-    override suspend fun getDuration(): TimeSpan? = track.meta.totalDuration.seconds
+    override suspend fun getDuration(): HRTimeSpan? = track.meta.totalDuration.hrSeconds
 
     override suspend fun readFrame(): TFrame? {
         prepareFrames()
@@ -83,7 +85,7 @@ abstract class JvmBaseKorviStream<TFrame : KorviFrame>(
 }
 
 class JvmKorviVideoStream(
-    container: JvmKorviVideo,
+    container: JvmKorviVideoLL,
     private val videoTrack: DemuxerTrack
 ) : JvmBaseKorviStream<KorviVideoFrame>(container, videoTrack) {
     private val adaptor = AVCMP4Adaptor(videoTrack.meta)
@@ -94,12 +96,12 @@ class JvmKorviVideoStream(
         if (queue.isNotEmpty()) return
         val frame = videoTrack.nextFrame() ?: return
         val picture = adaptor.decodeFrame(frame, pic)
-        queue.enqueue(KorviVideoFrame(picture.toBmp(), frame.frameNo, frame.ptsD.seconds, frame.durationD.seconds))
+        queue.enqueue(KorviVideoFrame(picture.toBmp(), frame.frameNo, frame.ptsD.hrSeconds, frame.durationD.hrSeconds))
     }
 }
 
 class JvmKorviAudioStream(
-    container: JvmKorviVideo,
+    container: JvmKorviVideoLL,
     private val audioTrack: DemuxerTrack
 ) : JvmBaseKorviStream<KorviAudioFrame>(container, audioTrack) {
     private val audioMeta = audioTrack.meta
@@ -125,7 +127,7 @@ class JvmKorviAudioStream(
                 arraycopy(shorts, channel * sampleCount, array, 0, array.size)
             }
 
-            queue.enqueue(KorviAudioFrame(AudioData(audioBuffer.format.frameRate, audioSamples), frame.frameNo, frame.ptsD.seconds, frame.durationD.seconds))
+            queue.enqueue(KorviAudioFrame(AudioData(audioBuffer.format.frameRate, audioSamples), frame.frameNo, frame.ptsD.hrSeconds, frame.durationD.hrSeconds))
             //outs.write(shorts.toByteArrayLE())
         }
     }
