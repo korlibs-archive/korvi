@@ -4,6 +4,7 @@ import com.soywiz.klock.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
+import com.soywiz.korim.font.SystemFont
 import com.soywiz.korim.vector.*
 
 class DummyKorviVideo(
@@ -53,9 +54,10 @@ class DummyKorviVideo(
                     width * 0.5,
                     height * 0.5,
                     color = Colors.WHITE,
-                    font = Context2d.Font("Arial", 32.0),
-                    halign = Context2d.HorizontalAlign.CENTER,
-                    valign = Context2d.VerticalAlign.MIDDLE
+                    font = SystemFont("Arial"),
+                    fontSize = 32.0,
+                    halign = HorizontalAlign.CENTER,
+                    valign = VerticalAlign.MIDDLE
                 )
             }
             return KorviVideoFrame(data.toBMP32(), frame, timePerFrame * frame.toDouble(), timePerFrame)
