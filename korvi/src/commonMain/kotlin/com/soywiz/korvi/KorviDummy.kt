@@ -64,7 +64,7 @@ class DummyKorviVideoLL(
                     valign = VerticalAlign.MIDDLE
                 )
             }
-            return KorviVideoFrame(data.toBMP32(), frame, timePerFrame * frame.toDouble(), timePerFrame)
+            return KorviVideoFrame({ data.toBMP32() }, frame, timePerFrame * frame.toDouble(), timePerFrame)
         }
     }
 
