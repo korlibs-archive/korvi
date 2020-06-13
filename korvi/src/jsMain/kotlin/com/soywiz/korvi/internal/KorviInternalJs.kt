@@ -3,13 +3,8 @@ package com.soywiz.korvi.internal
 import com.soywiz.klock.hr.HRTimeSpan
 import com.soywiz.klock.hr.hrMilliseconds
 import com.soywiz.klock.hr.hrSeconds
-import com.soywiz.klock.milliseconds
 import com.soywiz.korim.bitmap.Bitmap32
-import com.soywiz.korim.format.HTMLImageElementLike
 import com.soywiz.korim.format.HtmlImage
-import com.soywiz.korio.async.delay
-import com.soywiz.korio.async.launch
-import com.soywiz.korio.async.launchImmediately
 import com.soywiz.korio.file.VfsFile
 import com.soywiz.korio.file.std.UrlVfs
 import com.soywiz.korvi.KorviVideo
@@ -19,7 +14,6 @@ import org.w3c.dom.HTMLVideoElement
 import org.w3c.dom.events.Event
 import kotlin.browser.document
 import kotlin.browser.window
-import kotlin.coroutines.coroutineContext
 
 internal actual val korviInternal: KorviInternal = JsKorviInternal()
 
@@ -75,19 +69,22 @@ class KorviVideoJs(val url: String) : KorviVideo() {
         video.fastSeek(time.secondsDouble)
     }
 
-    private fun addListeners() {
-        interval = window.setInterval({
+    lateinit var animationFrame: (Double) -> Unit
+    init {
+        animationFrame = {
             videoFrame(null)
-        }, 16)
+            animationHandle = window.requestAnimationFrame(animationFrame)
+        }
+    }
 
-        //video.addEventListener("progress", videoFrame)
+    private fun addListeners() {
+        animationFrame(0.0)
         video.addEventListener("ended", videoComplete)
     }
 
-    private var interval = -1
+    private var animationHandle = -1
     private fun removeListeners() {
-        window.clearInterval(interval)
-        //video.removeEventListener("progress", videoFrame)
+        window.cancelAnimationFrame(animationHandle)
         video.removeEventListener("ended", videoComplete)
     }
 
