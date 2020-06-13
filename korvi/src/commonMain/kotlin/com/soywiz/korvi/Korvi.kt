@@ -17,10 +17,11 @@ fun KorviVideoLL(stream: AsyncStream): KorviVideoLL = korviInternal.createContai
 
 open class KorviVideo : BaseKorviSeekable {
     class Frame(
-        var data: Bitmap32,
+        var data: Bitmap,
         val position: HRTimeSpan,
         val duration: HRTimeSpan
     )
+
     val onVideoFrame = Signal<Frame>()
     val onComplete = Signal<Unit>()
     open val running: Boolean = false

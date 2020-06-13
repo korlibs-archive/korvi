@@ -5,6 +5,7 @@ import com.soywiz.klock.hr.hrMilliseconds
 import com.soywiz.klock.hr.hrSeconds
 import com.soywiz.korim.bitmap.Bitmap32
 import com.soywiz.korim.format.HtmlImage
+import com.soywiz.korim.format.HtmlNativeImage
 import com.soywiz.korio.file.VfsFile
 import com.soywiz.korio.file.std.UrlVfs
 import com.soywiz.korvi.KorviVideo
@@ -29,7 +30,6 @@ internal class JsKorviInternal : KorviInternal() {
 }
 
 class KorviVideoJs(val url: String) : KorviVideo() {
-    var canvas = document.createElement("canvas").unsafeCast<HTMLCanvasElement>()
     var video = document.createElement("video").unsafeCast<HTMLVideoElement>()
     init {
         video.src = url
@@ -45,14 +45,20 @@ class KorviVideoJs(val url: String) : KorviVideo() {
         onComplete(Unit)
     }
 
+    private var videoImage: HtmlNativeImage? = null
     val videoFrame = { e: Event? ->
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        val ctx = canvas.getContext("2d").unsafeCast<CanvasRenderingContext2D>()
-        ctx.drawImage(video, 0.0, 0.0)
-        val out = Bitmap32(video.videoWidth, video.videoHeight)
-        HtmlImage.renderHtmlCanvasIntoBitmap(canvas.asDynamic(), out)
-        onVideoFrame(Frame(out, video.currentTime.hrSeconds, 40.hrMilliseconds))
+        if (video.videoWidth != 0 && video.videoHeight != 0) {
+            if (videoImage == null || videoImage!!.width != video.videoWidth || videoImage!!.height != video.videoHeight) {
+                videoImage = HtmlNativeImage(video, video.videoWidth, video.videoHeight)
+            }
+            onVideoFrame(
+                Frame(
+                    videoImage!!.also { videoImage!!.contentVersion++ },
+                    video.currentTime.hrSeconds,
+                    40.hrMilliseconds
+                )
+            )
+        }
     }
 
     override suspend fun play() {
