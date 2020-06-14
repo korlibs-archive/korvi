@@ -10,6 +10,7 @@
 *.iws
 *.iml
 *.hprof
+/ffmpeg-4.2.3
 
 /korvi/.settings/
 /.settings/org.eclipse.buildship.core.prefs
