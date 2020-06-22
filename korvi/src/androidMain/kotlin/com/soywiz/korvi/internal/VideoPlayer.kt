@@ -1,12 +1,15 @@
 package com.soywiz.korvi.internal
 
-import android.media.Image
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
+import android.content.Context
+import android.media.*
+import android.os.Build
 import android.os.Handler
 import android.os.Message
 import android.util.Log
+import com.soywiz.korio.android.withAndroidContext
+import com.soywiz.korio.file.VfsFile
+import com.soywiz.korio.stream.readBytesUpTo
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 
 /**
@@ -15,7 +18,7 @@ import java.io.IOException
  * TODO: needs more advanced shuttle controls (pause/resume, skip)
  */
 @Suppress("ConstantConditionIf")
-class VideoPlayer(private val videoPath: String, private val decoderCallback: ((frame: Image, player: VideoPlayer)->Unit)? = null) {
+class VideoPlayer(private val file: VfsFile, val androidContext: Context, private val decoderCallback: ((frame: Image, player: VideoPlayer)->Unit)? = null) {
 
     companion object {
 
@@ -133,8 +136,13 @@ class VideoPlayer(private val videoPath: String, private val decoderCallback: ((
     }
 
     private fun setDataSource(extractor: MediaExtractor) {
-//        val mAssetDescriptor = context.assets.openFd("small.mp4")
-        extractor.setDataSource(videoPath)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            extractor.setDataSource(file.toMediaDataSource(androidContext))
+        } else {
+            TODO()
+        }
+
     }
 
     /**
@@ -371,8 +379,12 @@ class VideoPlayer(private val videoPath: String, private val decoderCallback: ((
                     }
                     val doRender = mBufferInfo.size != 0
 
-                    //decoderCallback?.invoke(decoderInputBuffers)
-                    decoderCallback?.invoke(decoder.getOutputImage(decoderStatus)!!, this)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        decoderCallback?.invoke(decoder.getOutputImage(decoderStatus)!!, this)
+                    } else {
+                        //decoderCallback?.invoke(decoderInputBuffers)
+                        error("Requires Lollipop (Android >= 5.0) API 21")
+                    }
 
                     // As soon as we call releaseOutputBuffer, the buffer will be forwarded
                     // to SurfaceTexture to convert to a texture.  We can't control when it
@@ -646,4 +658,35 @@ class VideoPlayer(private val videoPath: String, private val decoderCallback: ((
             mLoopReset = true
         }
     }
+}
+
+
+fun VfsFile.toMediaDataSource(context: Context) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    object : MediaDataSource() {
+        val vfsFile = this@toMediaDataSource
+
+        val stream = runBlocking { withAndroidContext(context) { vfsFile.openRead() } }
+
+        override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
+            return runBlocking {
+                withAndroidContext(context) {
+                    stream.position = position
+                    stream.read(buffer, offset, size)
+                }
+            }
+        }
+
+        override fun getSize(): Long = runBlocking {
+            withAndroidContext(context) {
+                stream.getLength()
+            }
+        }
+
+        override fun close() {
+            runBlocking {  withAndroidContext(context) {stream.close() } }
+
+        }
+    }
+} else {
+    TODO("VERSION.SDK_INT < M")
 }
