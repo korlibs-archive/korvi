@@ -11,6 +11,7 @@
 *.iml
 *.hprof
 /ffmpeg-4.2.3
+/ffmpeg
 
 /korvi/.settings/
 /.settings/org.eclipse.buildship.core.prefs

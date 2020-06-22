@@ -371,7 +371,7 @@ class VideoPlayer(private val videoPath: String, private val decoderCallback: ((
                     }
                     val doRender = mBufferInfo.size != 0
 
-//                    decoderCallback?.invoke(decoderInputBuffers)
+                    //decoderCallback?.invoke(decoderInputBuffers)
                     decoderCallback?.invoke(decoder.getOutputImage(decoderStatus)!!, this)
 
                     // As soon as we call releaseOutputBuffer, the buffer will be forwarded
