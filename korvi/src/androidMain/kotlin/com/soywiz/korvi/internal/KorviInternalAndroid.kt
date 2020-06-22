@@ -16,6 +16,7 @@ import com.soywiz.korio.file.VfsFile
 import com.soywiz.korio.file.std.AndroidResourcesVfs
 import com.soywiz.korio.file.std.LocalVfs
 import com.soywiz.korvi.KorviVideo
+import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -71,13 +72,12 @@ class AndroidKorviVideo(val file: VfsFile, val androidContext: Context, val coro
             launchImmediately(coroutineContext) {
                 onVideoFrame(KorviVideo.Frame(bmp, image.timestamp.toDouble().hrNanoseconds, 40.hrMilliseconds))
             }
-            Thread.sleep(40L) // @TODO: Hack!
         } else {
             TODO("VERSION.SDK_INT < KITKAT")
         }
     }
 
-    override val running: Boolean = true
+    override var running: Boolean = false
     override val elapsedTimeHr: HRTimeSpan get() = 0.hrMilliseconds
 
 
@@ -85,7 +85,14 @@ class AndroidKorviVideo(val file: VfsFile, val androidContext: Context, val coro
     override suspend fun getDuration(): HRTimeSpan? = null
 
     override suspend fun play() {
-        player.play()
+        thread {
+            try {
+                running = true
+                player.play()
+            } finally {
+                running = false
+            }
+        }
     }
 
     override suspend fun seek(frame: Long) {
@@ -97,7 +104,9 @@ class AndroidKorviVideo(val file: VfsFile, val androidContext: Context, val coro
     }
 
     override suspend fun stop() {
-        player.requestStop()
+        if (running) {
+            player.requestStop()
+        }
     }
 
     override suspend fun close() {
