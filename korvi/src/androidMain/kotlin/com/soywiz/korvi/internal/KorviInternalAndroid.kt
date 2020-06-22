@@ -9,6 +9,7 @@ import com.soywiz.klock.hr.hrMilliseconds
 import com.soywiz.klock.hr.hrNanoseconds
 import com.soywiz.korim.bitmap.Bitmap32
 import com.soywiz.korim.color.RGBA
+import com.soywiz.korim.color.RgbaArray
 import com.soywiz.korim.color.YUVA
 import com.soywiz.korim.color.toRGBA
 import com.soywiz.korim.format.AndroidNativeImage
@@ -33,6 +34,32 @@ internal class AndroidKorviInternal : KorviInternal() {
     }
 }
 
+// @TODO: Move to KorIM
+inline fun decodeYUVA(out: (index: Int, rgba: RGBA) -> Unit, size: Int, getY: (index: Int) -> Int, getU: (index: Int) -> Int, getV: (index: Int) -> Int, getA: (index: Int) -> Int) {
+    for (n in 0 until size) {
+        val Y = getY(n)
+        val U = getU(n)
+        val V = getV(n)
+        val A = getA(n)
+        val Y0 = 1.164f * (Y - 16)
+        val V0 = V - 128
+        val U0 = (U - 128)
+        val R = (Y0 + 1.596f * V0).toInt()
+        val G = (Y0 - 0.813f * V0 - 0.391f * U0).toInt()
+        val B = (Y0 + 2.018f * U0).toInt()
+        out(n, RGBA(R, G, B, A))
+    }
+}
+
+// @TODO: Move to KorIM
+inline fun decodeYUVA(out: RgbaArray, outOffset: Int, size: Int, getY: (index: Int) -> Int, getU: (index: Int) -> Int, getV: (index: Int) -> Int, getA: (index: Int) -> Int) {
+    decodeYUVA(
+        { n, col -> out[outOffset + n] = col },
+        size,
+        getY, getU, getV, getA
+    )
+}
+
 class AndroidKorviVideo(val file: VfsFile, val androidContext: Context, val coroutineContext: CoroutineContext) : KorviVideo() {
     //val realPath = path.trimStart('/')
 
@@ -53,39 +80,22 @@ class AndroidKorviVideo(val file: VfsFile, val androidContext: Context, val coro
             val _u = pu.buffer
             val _v = pv.buffer
 
-            val bmp = Bitmap32(image.width, image.height)
+            val bmp = Bitmap32(image.width, image.height, premultiplied = true)
 
-            //println("width: ${image.width}")
-            //println("height: ${image.height}")
-            //println("y: $_y, ${py.rowStride}, ${py.pixelStride}")
-            //println("u: $_u, ${pu.rowStride}, ${pu.pixelStride}")
-            //println("v: $_v, ${pv.rowStride}, ${pv.pixelStride}")
-
-            var n = 0
             val bmpData = bmp.data
             for (y in 0 until image.height) {
                 val yPos = y * py.rowStride
                 val uvPos = (y / 2) * pu.rowStride
-                for (x in 0 until image.width) {
-                    val Y = _y.get(yPos + x).toInt() and 0xFF
-                    val U = _u.get(uvPos + (x / 2)).toInt() and 0xFF
-                    val V = _v.get(uvPos + (x / 2)).toInt() and 0xFF
 
-                    val Y0 = 1.164f * (Y - 16)
-                    val V0 = V - 128
-                    val U0 = (U - 128)
-
-                    val R = (Y0 + 1.596f * V0).toInt()
-                    val G = (Y0 - 0.813f * V0 - 0.391f * U0).toInt()
-                    val B = (Y0 + 2.018f * U0).toInt()
-                    //val R = YUVA.getR(Y, U, V)
-                    //val G = YUVA.getG(Y, U, V)
-                    //val B = YUVA.getB(Y, U, V)
-
-                    bmpData[n++] = RGBA(R, G, B, 0xFF)
-                    //bmpData[n++] = RGBA.unclamped(R, G, B, 0xFF)
-                    //bmp[x, y] = RGBA(cy, cy, cy, 0xFF)
-                }
+                decodeYUVA(
+                    bmpData,
+                    y * bmp.width,
+                    bmp.width,
+                    getY = { _y.get(yPos + it).toInt() and 0xFF },
+                    getU = { _u.get(uvPos + (it / 2)).toInt() and 0xFF },
+                    getV = { _v.get(uvPos + (it / 2)).toInt() and 0xFF },
+                    getA = { 0xFF }
+                )
             }
 
             launchImmediately(coroutineContext) {
