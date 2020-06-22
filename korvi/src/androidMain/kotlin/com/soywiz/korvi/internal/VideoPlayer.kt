@@ -25,7 +25,8 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
         private val TAG: String = VideoPlayer::class.java.toString()
         private const val TIMEOUT_USEC = 10000
         private const val MSG_PLAY_STOPPED = 0
-        private const val VERBOSE = true
+        //private const val VERBOSE = true
+        private const val VERBOSE = false
 
         /**
          * Selects the video track, if any.
@@ -312,9 +313,7 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
                             presentationTimeUs, 0 /*flags*/
                         )
                         if (VERBOSE) {
-                            Log.d(
-                                TAG, "submitted frame $inputChunk to dec, size=$chunkSize"
-                            )
+                            Log.d(TAG, "submitted frame $inputChunk to dec, size=$chunkSize")
                         }
                         inputChunk++
                         extractor.advance()

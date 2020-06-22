@@ -53,19 +53,24 @@ class AndroidKorviVideo(val file: VfsFile, val androidContext: Context, val coro
 
             val bmp = Bitmap32(image.width, image.height)
 
-            println("width: ${image.width}")
-            println("height: ${image.height}")
-            println("y: $_y, ${py.rowStride}, ${py.pixelStride}")
-            println("u: $_u, ${pu.rowStride}, ${pu.pixelStride}")
-            println("v: $_v, ${pv.rowStride}, ${pv.pixelStride}")
+            //println("width: ${image.width}")
+            //println("height: ${image.height}")
+            //println("y: $_y, ${py.rowStride}, ${py.pixelStride}")
+            //println("u: $_u, ${pu.rowStride}, ${pu.pixelStride}")
+            //println("v: $_v, ${pv.rowStride}, ${pv.pixelStride}")
 
             for (y in 0 until image.height) {
                 for (x in 0 until image.width) {
-                    val cy = _y.get(_y.position() + y * py.rowStride + x).toInt() and 0xFF
-                    //val cu = _u.get(_u.position() + y * pu.rowStride + x).toInt() and 0xFF
-                    //val cv = _v.get(_v.position() + y * pv.rowStride + x).toInt() and 0xFF
-                    //bmp[x, y] = RGBA(cy, cu, cv, 0xFF)
-                    bmp[x, y] = RGBA(cy, cy, cy, 0xFF)
+                    val Y = _y.get(y * py.rowStride + x).toInt() and 0xFF
+                    val U = _u.get((y / 2) * pu.rowStride + (x / 2)).toInt() and 0xFF
+                    val V = _v.get((y / 2) * pv.rowStride + (x / 2)).toInt() and 0xFF
+
+                    val R = (1.164f * (Y - 16) + 1.596f * (V - 128)).toInt()
+                    val G = (1.164f * (Y - 16) - 0.813f * (V - 128) - 0.391f * (U - 128)).toInt()
+                    val B = (1.164f * (Y - 16)                   + 2.018f * (U - 128)).toInt()
+
+                    bmp[x, y] = RGBA(R, G, B, 0xFF)
+                    //bmp[x, y] = RGBA(cy, cy, cy, 0xFF)
                 }
             }
 
