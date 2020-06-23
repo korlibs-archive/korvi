@@ -27,6 +27,7 @@ open class KorviVideo : BaseKorviSeekable {
     open val running: Boolean = false
     open val elapsedTimeHr: HRTimeSpan get() = 0.hrNanoseconds
     val elapsedTime: TimeSpan get() = elapsedTimeHr.timeSpan
+    open fun prepare(): Unit = Unit
     override suspend fun getTotalFrames(): Long? = null
     override suspend fun getDuration(): HRTimeSpan? = null
     open suspend fun play(): Unit = Unit

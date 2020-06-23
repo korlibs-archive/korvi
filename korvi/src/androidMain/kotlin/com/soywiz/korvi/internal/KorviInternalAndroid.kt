@@ -11,7 +11,7 @@ internal class AndroidKorviInternal : KorviInternal() {
     override suspend fun createHighLevel(file: VfsFile): KorviVideo {
         //val final = file.getUnderlyingUnscapedFile()
         //val vfs = final.vfs
-        return AndroidKorviVideoSoft(file, androidContext(), coroutineContext)
-        //return AndroidKorviVideoAndroidMediaPlayer(file, coroutineContext)
+        //return AndroidKorviVideoSoft(file, androidContext(), coroutineContext)
+        return AndroidKorviVideoAndroidMediaPlayer(file)
     }
 }
