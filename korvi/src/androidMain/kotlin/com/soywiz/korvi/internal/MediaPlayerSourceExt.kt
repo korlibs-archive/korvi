@@ -13,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 import java.io.FileDescriptor
 
 
+// @TODO: Use String or FileDescriptor whenever possible since MediaDataSource requires
 suspend fun createMediaPlayerFromSource(source: VfsFile, context: Context): MediaPlayer {
     val finalVfsFile = source.getUnderlyingUnscapedFile()
     val vfs = finalVfsFile.vfs
@@ -42,7 +43,11 @@ private fun createMediaPlayerFromSourceAny(source: Any?): MediaPlayer {
             mediaPlayer.setDataSource(source)
         }
         source is AssetFileDescriptor -> {
-            mediaPlayer.setDataSource(source)
+            if (source.declaredLength < 0) {
+                mediaPlayer.setDataSource(source.fileDescriptor)
+            } else {
+                mediaPlayer.setDataSource(source.fileDescriptor, source.startOffset, source.declaredLength)
+            }
         }
         source is FileDescriptor -> {
             mediaPlayer.setDataSource(source)
