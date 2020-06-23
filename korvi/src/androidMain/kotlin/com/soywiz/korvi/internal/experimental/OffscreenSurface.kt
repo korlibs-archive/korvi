@@ -1,4 +1,4 @@
-package com.soywiz.korvi.internal
+package com.soywiz.korvi.internal.experimental
 
 import android.opengl.EGL14
 import android.opengl.GLUtils

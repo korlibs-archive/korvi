@@ -22,11 +22,13 @@ korlibs {
 //}
 
 val korimVersion: String by project
+val korgwVersion: String by project
 val korauVersion: String by project
 val jcodecVersion: String by project
 
 dependencies {
     add("commonMainApi", "com.soywiz.korlibs.korim:korim:$korimVersion")
+    add("commonMainApi", "com.soywiz.korlibs.korgw:korgw:$korgwVersion")
     add("commonMainApi", "com.soywiz.korlibs.korau:korau:$korauVersion")
     add("jvmMainApi", "org.jcodec:jcodec:$jcodecVersion")
 }

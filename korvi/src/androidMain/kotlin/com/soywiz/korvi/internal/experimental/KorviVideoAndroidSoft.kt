@@ -1,4 +1,4 @@
-package com.soywiz.korvi.internal
+package com.soywiz.korvi.internal.experimental
 
 import android.content.Context
 import android.graphics.ImageFormat
@@ -48,44 +48,45 @@ class AndroidKorviVideoSoft(val file: VfsFile, val androidContext: Context, val 
         println("TRYING TO OPEN VIDEO '$file'")
     }
 
-    val player = VideoPlayer(file, androidContext) { image, player ->
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            // plane #0 is always Y, plane #1 is always U (Cb), and plane #2 is always V (Cr)
-            if (image.format != ImageFormat.YUV_420_888) error("Only supported YUV_420 formats")
+    val player =
+        VideoPlayer(file, androidContext) { image, player ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                // plane #0 is always Y, plane #1 is always U (Cb), and plane #2 is always V (Cr)
+                if (image.format != ImageFormat.YUV_420_888) error("Only supported YUV_420 formats")
 
-            val py = image.planes[0]
-            val pu = image.planes[1]
-            val pv = image.planes[2]
+                val py = image.planes[0]
+                val pu = image.planes[1]
+                val pv = image.planes[2]
 
-            val _y = py.buffer
-            val _u = pu.buffer
-            val _v = pv.buffer
+                val _y = py.buffer
+                val _u = pu.buffer
+                val _v = pv.buffer
 
-            val bmp = Bitmap32(image.width, image.height, premultiplied = true)
+                val bmp = Bitmap32(image.width, image.height, premultiplied = true)
 
-            val bmpData = bmp.data
-            for (y in 0 until image.height) {
-                val yPos = y * py.rowStride
-                val uvPos = (y / 2) * pu.rowStride
+                val bmpData = bmp.data
+                for (y in 0 until image.height) {
+                    val yPos = y * py.rowStride
+                    val uvPos = (y / 2) * pu.rowStride
 
-                decodeYUVA(
-                    bmpData,
-                    y * bmp.width,
-                    bmp.width,
-                    getY = { _y.get(yPos + it).toInt() and 0xFF },
-                    getU = { _u.get(uvPos + (it / 2)).toInt() and 0xFF },
-                    getV = { _v.get(uvPos + (it / 2)).toInt() and 0xFF },
-                    getA = { 0xFF }
-                )
+                    decodeYUVA(
+                        bmpData,
+                        y * bmp.width,
+                        bmp.width,
+                        getY = { _y.get(yPos + it).toInt() and 0xFF },
+                        getU = { _u.get(uvPos + (it / 2)).toInt() and 0xFF },
+                        getV = { _v.get(uvPos + (it / 2)).toInt() and 0xFF },
+                        getA = { 0xFF }
+                    )
+                }
+
+                launchImmediately(coroutineContext) {
+                    onVideoFrame(Frame(bmp, image.timestamp.toDouble().hrNanoseconds, 40.hrMilliseconds))
+                }
+            } else {
+                TODO("VERSION.SDK_INT < KITKAT")
             }
-
-            launchImmediately(coroutineContext) {
-                onVideoFrame(Frame(bmp, image.timestamp.toDouble().hrNanoseconds, 40.hrMilliseconds))
-            }
-        } else {
-            TODO("VERSION.SDK_INT < KITKAT")
         }
-    }
 
     override var running: Boolean = false
     override val elapsedTimeHr: HRTimeSpan get() = 0.hrMilliseconds

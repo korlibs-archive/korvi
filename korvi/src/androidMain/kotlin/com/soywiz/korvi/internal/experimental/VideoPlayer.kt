@@ -1,4 +1,4 @@
-package com.soywiz.korvi.internal
+package com.soywiz.korvi.internal.experimental
 
 import android.content.Context
 import android.media.*
@@ -6,10 +6,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.Message
 import android.util.Log
-import com.soywiz.korio.android.withAndroidContext
 import com.soywiz.korio.file.VfsFile
-import com.soywiz.korio.stream.readBytesUpTo
-import kotlinx.coroutines.runBlocking
+import com.soywiz.korvi.internal.toMediaDataSource
 import java.io.IOException
 
 /**
@@ -117,7 +115,8 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
             extractor = MediaExtractor()
             setDataSource(extractor)
 
-            val trackIndex = selectTrack(extractor)
+            val trackIndex =
+                selectTrack(extractor)
             if (trackIndex < 0) {
                 throw RuntimeException("No video track found in XXXXXXXX")
             }
@@ -178,7 +177,8 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
             extractor = MediaExtractor()
             setDataSource(extractor)
 
-            val trackIndex = selectTrack(extractor)
+            val trackIndex =
+                selectTrack(extractor)
             if (trackIndex < 0) {
                 throw RuntimeException("No video track found")
             }
@@ -193,7 +193,9 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
             decoder = MediaCodec.createDecoderByType(mime ?: "")
             decoder.configure(format, null, null, 0)
             decoder.start()
-            doExtract(extractor, trackIndex, decoder, SpeedControlCallback())
+            doExtract(extractor, trackIndex, decoder,
+                SpeedControlCallback()
+            )
 
         } finally {
             // release everything we grabbed
@@ -319,7 +321,8 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
                         extractor.advance()
                     }
                 } else {
-                    if (VERBOSE) Log.d(TAG, "input buffer not available")
+                    if (VERBOSE) Log.d(
+                        TAG, "input buffer not available")
                 }
             }
             if (!outputDone) {
@@ -506,11 +509,13 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
          * @param feedback UI feedback object.
          */
         init {
-            mLocalHandler = LocalHandler()
+            mLocalHandler =
+                LocalHandler()
         }
     }
 
-    private class SpeedControlCallback : FrameCallback {
+    private class SpeedControlCallback :
+        FrameCallback {
 
         companion object {
             private val TAG: String = VideoPlayer::class.java.toString()

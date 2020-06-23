@@ -1,4 +1,4 @@
-package com.soywiz.korvi.internal
+package com.soywiz.korvi.internal.experimental
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -17,9 +17,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.soywiz.klock.hr.HRTimeSpan
-import com.soywiz.korio.android.androidContext
+import com.soywiz.klock.hr.hrMilliseconds
+import com.soywiz.korim.format.AndroidNativeImage
 import com.soywiz.korio.file.VfsFile
 import com.soywiz.korvi.KorviVideo
+import com.soywiz.korvi.internal.createMediaPlayerFromSource
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -29,26 +31,31 @@ import javax.microedition.khronos.opengles.GL10
 import kotlin.coroutines.CoroutineContext
 
 class KorviVideoAndroidSurfaceView(val file: VfsFile, val androidContext: Context, val coroutineContext: CoroutineContext) : KorviVideo() {
-    val videoSurfaceContainer = VideoSurfaceContainer(androidContext, file, invisible = false, callback = object : VideoSurfaceContainerCallback {
-        override fun textureIdGenerated(texName: Int) {
-            println("textureIdGenerated")
-        }
+    val videoSurfaceContainer = VideoSurfaceContainer(
+        androidContext,
+        file,
+        invisible = false,
+        callback = object : VideoSurfaceContainerCallback {
+            override fun textureIdGenerated(texName: Int) {
+                println("textureIdGenerated")
+            }
 
-        override fun surfaceTextureReady(surfaceTexture: SurfaceTexture) {
-            println("surfaceTextureReady")
-        }
+            override fun surfaceTextureReady(surfaceTexture: SurfaceTexture) {
+                println("surfaceTextureReady")
+            }
 
-        override fun onFrameAvailable(surface: SurfaceTexture) {
-            println("onFrameAvailable")
-        }
+            override fun onFrameAvailable(surface: SurfaceTexture) {
+                println("onFrameAvailable")
+            }
 
-        override fun onFrameCaptured(bitmap: Bitmap) {
-            println("onFrameCaptured")
-        }
-    })
+            override fun onFrameCaptured(bitmap: Bitmap) {
+                println("onFrameCaptured")
+                onVideoFrame(Frame(AndroidNativeImage(bitmap), 0.hrMilliseconds, 40.hrMilliseconds))
+            }
+        })
     init {
-        (androidContext as Activity).addContentView(videoSurfaceContainer, ViewGroup.LayoutParams(1, 1))
-        //(androidContext as Activity).addContentView(videoSurfaceContainer, ViewGroup.LayoutParams(100, 100))
+        //(androidContext as Activity).addContentView(videoSurfaceContainer, ViewGroup.LayoutParams(1, 1))
+        (androidContext as Activity).addContentView(videoSurfaceContainer, ViewGroup.LayoutParams(100, 100))
         (videoSurfaceContainer as ViewGroup).removeView(videoSurfaceContainer)
     }
 
@@ -108,7 +115,8 @@ class VideoSurfaceContainer(
     init {
         setBackgroundColor(Color.BLUE)
         visibility = if (invisible) View.INVISIBLE else View.VISIBLE
-        videoSurface = VideoSurfaceView(context, file, callback)
+        videoSurface =
+            VideoSurfaceView(context, file, callback)
         addView(videoSurface)
     }
 
@@ -181,6 +189,7 @@ void main() {
 
         private var mPixelBuf: ByteBuffer? = null
         var saveFrame = false
+        //var saveFrame = true
 
         private val mMVPMatrix = FloatArray(16)
         private val mSTMatrix = FloatArray(16)
@@ -239,10 +248,13 @@ void main() {
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
             checkGlError("glDrawArrays")
 
+            saveFrame()
+            /*
             if(saveFrame) {
                 saveFrame()
                 saveFrame = false
             }
+             */
 
             GLES20.glFinish()
         }
@@ -449,3 +461,4 @@ void main() {
         }
     }
 }
+
