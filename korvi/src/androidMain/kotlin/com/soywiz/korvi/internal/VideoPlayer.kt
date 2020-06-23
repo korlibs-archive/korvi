@@ -577,28 +577,18 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
                 // when we want to wake up
                 when {
                     frameDelta < 0 -> {
-                        Log.w(
-                            TAG,
-                            "Weird, video times went backward"
-                        )
+                        Log.w(TAG, "Weird, video times went backward")
                         frameDelta = 0
                     }
                     frameDelta == 0L -> {
                         // This suggests a possible bug in movie generation.
-                        Log.i(
-                            TAG,
-                            "Warning: current frame and previous frame had same timestamp"
-                        )
+                        Log.i(TAG, "Warning: current frame and previous frame had same timestamp")
                     }
                     frameDelta > 10 * ONE_MILLION -> {
                         // Inter-frame times could be arbitrarily long.  For this player, we want
                         // to alert the developer that their movie might have issues (maybe they
                         // accidentally output timestamps in nsec rather than usec).
-                        Log.i(
-                            TAG,
-                            "Inter-frame pause was " + frameDelta / ONE_MILLION +
-                                    "sec, capping at 5 sec"
-                        )
+                        Log.i(TAG, "Inter-frame pause was ${frameDelta / ONE_MILLION}sec, capping at 5 sec")
                         frameDelta = 5 * ONE_MILLION
                     }
                 }
@@ -629,9 +619,7 @@ class VideoPlayer(private val file: VfsFile, val androidContext: Context, privat
                             val actualSleepNsec = System.nanoTime() - startNsec
                             Log.d(
                                 TAG,
-                                "sleep=" + sleepTimeUsec + " actual=" + actualSleepNsec / 1000 +
-                                        " diff=" + Math.abs(actualSleepNsec / 1000 - sleepTimeUsec) +
-                                        " (usec)"
+                                "sleep=$sleepTimeUsec actual=${actualSleepNsec / 1000} diff=${Math.abs(actualSleepNsec / 1000 - sleepTimeUsec)} (usec)"
                             )
                         } else {
                             Thread.sleep(

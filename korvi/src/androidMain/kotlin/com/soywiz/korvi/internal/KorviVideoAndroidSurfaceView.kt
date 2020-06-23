@@ -14,8 +14,11 @@ import android.opengl.Matrix
 import android.util.Log
 import android.view.Surface
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.soywiz.klock.hr.HRTimeSpan
+import com.soywiz.korio.android.androidContext
+import com.soywiz.korio.file.VfsFile
 import com.soywiz.korvi.KorviVideo
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -23,11 +26,30 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.coroutines.CoroutineContext
 
-class KorviVideoAndroidSurfaceView(val context: Context) : KorviVideo() {
+class KorviVideoAndroidSurfaceView(val file: VfsFile, val androidContext: Context, val coroutineContext: CoroutineContext) : KorviVideo() {
+    val videoSurfaceContainer = VideoSurfaceContainer(androidContext, file, invisible = false, callback = object : VideoSurfaceContainerCallback {
+        override fun textureIdGenerated(texName: Int) {
+            println("textureIdGenerated")
+        }
+
+        override fun surfaceTextureReady(surfaceTexture: SurfaceTexture) {
+            println("surfaceTextureReady")
+        }
+
+        override fun onFrameAvailable(surface: SurfaceTexture) {
+            println("onFrameAvailable")
+        }
+
+        override fun onFrameCaptured(bitmap: Bitmap) {
+            println("onFrameCaptured")
+        }
+    })
     init {
-        //VideoSurfaceContainer(context, )
-        TODO()
+        (androidContext as Activity).addContentView(videoSurfaceContainer, ViewGroup.LayoutParams(1, 1))
+        //(androidContext as Activity).addContentView(videoSurfaceContainer, ViewGroup.LayoutParams(100, 100))
+        (videoSurfaceContainer as ViewGroup).removeView(videoSurfaceContainer)
     }
 
     override val running: Boolean
@@ -44,23 +66,23 @@ class KorviVideoAndroidSurfaceView(val context: Context) : KorviVideo() {
     }
 
     override suspend fun play() {
-        super.play()
+        println("KorviVideoAndroidSurfaceView.play")
     }
 
     override suspend fun seek(frame: Long) {
-        super.seek(frame)
+        println("KorviVideoAndroidSurfaceView.seek")
     }
 
     override suspend fun seek(time: HRTimeSpan) {
-        super.seek(time)
+        println("KorviVideoAndroidSurfaceView.seek")
     }
 
     override suspend fun stop() {
-        super.stop()
+        println("KorviVideoAndroidSurfaceView.stop")
     }
 
     override suspend fun close() {
-        super.close()
+        println("KorviVideoAndroidSurfaceView.close")
     }
 }
 
@@ -76,7 +98,7 @@ interface VideoSurfaceContainerCallback {
 @SuppressLint("ViewConstructor")
 class VideoSurfaceContainer(
     context: Context,
-    filePath: String,
+    file: VfsFile,
     invisible: Boolean,
     callback: VideoSurfaceContainerCallback? = null
 ) : FrameLayout(context) {
@@ -86,7 +108,7 @@ class VideoSurfaceContainer(
     init {
         setBackgroundColor(Color.BLUE)
         visibility = if (invisible) View.INVISIBLE else View.VISIBLE
-        videoSurface = VideoSurfaceView(context, filePath, callback)
+        videoSurface = VideoSurfaceView(context, file, callback)
         addView(videoSurface)
     }
 
@@ -97,8 +119,8 @@ class VideoSurfaceContainer(
 
 @SuppressLint("ViewConstructor")
 class VideoSurfaceView(
-    context: Context?,
-    filePath: String,
+    context: Context,
+    file: VfsFile,
     callback: VideoSurfaceContainerCallback? = null
 ) : GLSurfaceView(context) {
 
@@ -116,11 +138,7 @@ class VideoSurfaceView(
 
     init {
         setEGLContextClientVersion(2)
-
-        val mediaPlayer = MediaPlayer().apply {
-            setDataSource(filePath)
-        }
-
+        val mediaPlayer = createMediaPlayerFromSource(file, context)
         renderer = VideoRenderer(callback, mediaPlayer)
         setRenderer(renderer)
     }
