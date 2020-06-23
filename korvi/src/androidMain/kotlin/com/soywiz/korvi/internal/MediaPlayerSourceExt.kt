@@ -1,18 +1,33 @@
 package com.soywiz.korvi.internal
 
 import android.content.Context
+import android.content.res.AssetFileDescriptor
 import android.media.MediaDataSource
 import android.media.MediaPlayer
 import android.os.Build
 import com.soywiz.korio.android.androidContext
 import com.soywiz.korio.android.withAndroidContext
 import com.soywiz.korio.file.VfsFile
+import com.soywiz.korio.file.std.AndroidResourcesVfs
 import kotlinx.coroutines.runBlocking
 import java.io.FileDescriptor
 
-// @TODO: Use String or FileDescriptor whenever possible since MediaDataSource requires
-fun createMediaPlayerFromSource(source: VfsFile, context: Context): MediaPlayer {
-    return createMediaPlayerFromSourceAny(source.toMediaDataSource(context))
+
+suspend fun createMediaPlayerFromSource(source: VfsFile, context: Context): MediaPlayer {
+    val finalVfsFile = source.getUnderlyingUnscapedFile()
+    val vfs = finalVfsFile.vfs
+    val filePath = finalVfsFile.path.trimStart('/')
+    return when (vfs) {
+        is AndroidResourcesVfs -> {
+            //println("createMediaPlayerFromSource.filePath: $filePath")
+            val assetFileDescriptor = context.assets.openFd(filePath)
+            //println("createMediaPlayerFromSource.assetFileDescriptor: $assetFileDescriptor")
+            createMediaPlayerFromSourceAny(assetFileDescriptor)
+        }
+        else -> {
+            createMediaPlayerFromSourceAny(source.toMediaDataSource(context))
+        }
+    }
 }
 
 suspend fun createMediaPlayerFromSource(source: VfsFile): MediaPlayer = createMediaPlayerFromSource(source, androidContext())
@@ -24,6 +39,9 @@ private fun createMediaPlayerFromSourceAny(source: Any?): MediaPlayer {
     val mediaPlayer = MediaPlayer()
     when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && source is MediaDataSource -> {
+            mediaPlayer.setDataSource(source)
+        }
+        source is AssetFileDescriptor -> {
             mediaPlayer.setDataSource(source)
         }
         source is FileDescriptor -> {

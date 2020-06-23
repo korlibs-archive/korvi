@@ -22,6 +22,7 @@ import com.soywiz.korim.format.AndroidNativeImage
 import com.soywiz.korio.file.VfsFile
 import com.soywiz.korvi.KorviVideo
 import com.soywiz.korvi.internal.createMediaPlayerFromSource
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -146,7 +147,7 @@ class VideoSurfaceView(
 
     init {
         setEGLContextClientVersion(2)
-        val mediaPlayer = createMediaPlayerFromSource(file, context)
+        val mediaPlayer = runBlocking { createMediaPlayerFromSource(file, context) }
         renderer = VideoRenderer(callback, mediaPlayer)
         setRenderer(renderer)
     }
