@@ -121,8 +121,11 @@ class SurfaceNativeImage(width: Int, height: Int, val info: SurfaceTextureInfo) 
     val surfaceTexture get() = info.texture
 
     override val forcedTexId: Int get() = info.texId
+    override val forcedTexTarget: Int get() = GL_TEXTURE_EXTERNAL_OES
 
     companion object {
+        const val GL_TEXTURE_EXTERNAL_OES = 0x8D65
+
         operator fun invoke(width: Int, height: Int): SurfaceNativeImage {
             val info = createSurfacePair()
             return SurfaceNativeImage(width, height, info)
