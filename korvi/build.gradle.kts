@@ -7,7 +7,7 @@ plugins {
 apply<KorlibsPlugin>()
 
 korlibs {
-    exposeVersion()
+    //exposeVersion()
 }
 
 //kotlin {
