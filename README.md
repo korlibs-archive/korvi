@@ -6,7 +6,7 @@
 <p align="center">
 	<a href="https://travis-ci.org/korlibs/korvi"><img alt="Build Status" src="https://travis-ci.org/korlibs/korvi.svg?branch=master" /></a>
 	<a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22korvi%22"><img alt="Maven Version" src="https://img.shields.io/github/tag/korlibs/korvi.svg?style=flat&label=maven" /></a>
-	<a href="https://slack.soywiz.com/"><img alt="Slack" src="https://img.shields.io/badge/chat-on%20slack-green?style=flat&logo=slack" /></a>
+	<a href="https://discord.korge.org/"><img alt="Discord" src="https://img.shields.io/discord/728582275884908604?logo=discord" /></a>
 </p>
 <!-- /BADGES -->
 
